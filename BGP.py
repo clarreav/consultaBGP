@@ -1,3 +1,4 @@
+from datetime import datetime
 import mysql.connector
 from mysql.connector import Error
 from mysql.connector import errorcode
@@ -60,6 +61,7 @@ def sql_table():
             "  `clusterlist` varchar(100) NOT NULL,"
             "  `rxpathid` varchar(100) NOT NULL,"
             "  `txpathid` varchar(100) NOT NULL,"
+            "  `fecha` varchar(100) NOT NULL,"
             "  PRIMARY KEY (`id`)"
             ") ENGINE=InnoDB")
         con = sql_connection()
@@ -84,9 +86,9 @@ def sql_table():
 def telnet():
     # Direccion ip del router
     HOST_IP = "route-server.gvt.net.br"
-    # Usuario para ingresar al servidor de telnet
+    # Usuario para ingresar al servidor de telnet (gvt_view)
     host_user = input("Enter your telnet username: ")
-    # Contrasena para ingresar al servidor de telnet
+    # Contrasena para ingresar al servidor de telnet (gvt_view)
     password = input("Enter your telnet password: ")
     # Conexion con telnet
     t = telnetlib.Telnet(HOST_IP)
@@ -95,7 +97,7 @@ def telnet():
     t.read_until(b"Password:")
     t.write(password.encode("ascii") + b"\n")
     # Comando para la lectura de la RIB de la red 1.0.0.0
-    t.write(b"sh bgp ipv4 unicast 1.0.0.0\n")
+    t.write(b"sh bgp ipv4 unicast 8.8.8.8\n")
     t.write(b"exit\n")
     # Lectura de la ejecucion de los comandos
     res = t.read_all().decode("ascii")
@@ -123,6 +125,7 @@ def main():
     cluster = ""
     rx = ""
     tx = ""
+    fecha=datetime.strftime(datetime.now(),"%d/%m/%Y")
     # Lectura de campos de cada linea
     for el in separado:
         print(el)
@@ -153,15 +156,17 @@ def main():
     # Instruccion para ejecutar
     query = ("INSERT INTO DatosBGP "
              "(red, version, importedpath, bestroute, origin, community, originator, clusterlist, rxpathid, "
-             "txpathid) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
-    datos = (red, version, importedpath, bestroute, origin, community, originator, cluster, rx, tx)
+             "txpathid, fecha) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+    datos = (red, version, importedpath, bestroute, origin, community, originator, cluster, rx, tx, fecha)
     cursor.execute(query, datos)
     conector.commit()
     cursor.close()
+    print("Ingreso exitoso.")
     cursor = conector.cursor()
     # Muestra de los datos almacenados
     cursor.execute("SELECT * FROM DatosBGP")
     record = cursor.fetchall()
+    print("Datos de la tabla: \n")
     for el in record:
         print(el)
     cursor.close()
