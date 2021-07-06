@@ -87,9 +87,11 @@ def telnet():
     # Direccion ip del router
     HOST_IP = "route-server.gvt.net.br"
     # Usuario para ingresar al servidor de telnet (gvt_view)
-    host_user = input("Enter your telnet username: ")
+    host_user = input("Ingrese su usuario de telnet: ")
     # Contrasena para ingresar al servidor de telnet (gvt_view)
-    password = input("Enter your telnet password: ")
+    password = input("Ingrese su password de telnet: ")
+    # Red para el comando bgp
+    red = input("Ingrese una red: ")
     # Conexion con telnet
     t = telnetlib.Telnet(HOST_IP)
     t.read_until(b"Username:")
@@ -97,7 +99,7 @@ def telnet():
     t.read_until(b"Password:")
     t.write(password.encode("ascii") + b"\n")
     # Comando para la lectura de la RIB de la red 1.0.0.0
-    t.write(b"sh bgp ipv4 unicast 8.8.8.8\n")
+    t.write(b"sh bgp ipv4 unicast "+red.encode("ascii")+b"\n")
     t.write(b"exit\n")
     # Lectura de la ejecucion de los comandos
     res = t.read_all().decode("ascii")
